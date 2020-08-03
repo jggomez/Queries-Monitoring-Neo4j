@@ -1,6 +1,6 @@
 # Neo4j Queries Monitoring
 
-This progam monitors the query.log file created by neo4j and sends the queries by email or slack.
+This program monitors the query.log file created by neo4j and sends the queries by email or slack.
 
 # Steps
  - [ ] Neo4j can be configured to log queries executed in the database. Please add the threshold parameter.
