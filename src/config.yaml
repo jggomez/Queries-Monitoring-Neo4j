@@ -1,0 +1,8 @@
+configfile: config.yaml
+pathquerylogfile: example.txt
+emailenable: N
+emailto: support_company@wordbox.ai
+emailfrom: support_company@gmail.com
+passwordemailfrom: PASSWORD
+slackenable: Y
+slackwebhook: https://hooks.slack.com/services/XXXXXXXXXXXX

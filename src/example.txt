@@ -1,0 +1,84 @@
+2020-07-29 04:28:40.950+0000 INFO  7186 ms: (planning: 0, cpu: 6992, waiting: 7182) - 3141242752 B - 6137928 page hits, 3 page faults - embedded-sess
+ion             dev -  WITH  {`word_list`} as `word_list` 
+    unwind {word_list} as x
+    CALL apoc.cypher.run('
+        WITH {x} AS word_
+        MATCH (el) - [:HAS_CONTENT] -> (c:CONTENT) - [rel:HAS_WORD] -> (w:WORD{text:word_}) 
+        WHERE (:USER{id:"PqM9eULbuURBFVo7c7hM7yzuQmT2"}) - [:LIKES] ->(el:SERIES) 
+        RETURN {content:c, interest:el.name, word:w.text, pos:rel.pos} as qu LIMIT 6
+        UNION ALL
+        WITH {x} AS word_
+        MATCH (el) - [:HAS_CONTENT] -> (c:CONTENT) - [rel:HAS_WORD] -> (w:WORD{text:word_})
+        WHERE (:USER{id:"PqM9eULbuURBFVo7c7hM7yzuQmT2"}) - [:LIKES] ->(el:MOVIE)
+        RETURN {content:c, interest:el.name, word:w.text, pos:rel.pos} as qu LIMIT 6
+        UNION ALL
+        WITH {x} AS word_
+        MATCH (el) - [:HAS_CONTENT] -> (c:CONTENT) - [rel:HAS_WORD] -> (w:WORD{text:word_})
+        WHERE (:USER{id:"PqM9eULbuURBFVo7c7hM7yzuQmT2"}) - [:LIKES] ->(el:ARTIST)
+        RETURN {content:c, interest:el.name, word:w.text, pos:rel.pos} as qu LIMIT 6
+    ',{x:x}) YIELD value
+    with x, value.qu as content, rand() as rnd
+    return x, content, rnd order by rnd limit 1
+     - {word_list: ['is', 'bees', 'were', 'was', 'am', 'been', 'are', 'being', 'be']} - {}
+2020-07-29 04:28:42.086+0000 INFO  9592 ms: (planning: 19, cpu: 9334, waiting: 9478) - 4115704744 B - 7018519 page hits, 4 page faults - bolt-sessionbolt    dev     neobolt/1.7.17 Python/3.7.7-final-0 (linux)             client/107.178.207.47:48435     server/10.142.0.2:7687> dev - 
+MATCH (u:USER{id:'PqM9eULbuURBFVo7c7hM7yzuQmT2'})
+MATCH (el) - [:HAS_LEMMA]-> (l:LEMMA) <- [rel:HAS_LEMMA] - (w:WORD)
+WHERE (u) - [:LIKES] -> (el) and l.text in ['be', 'give', 'need', 'back', 'tell']
+OPTIONAL MATCH (u) -[rel1:HAS_SEEN] -(l)
+WITH l.text as lemma, collect(distinct(w.text)) as word_list, rel1.level as level, rel1.mastered as mastered
+
+CALL apoc.cypher.run("
+    unwind {word_list} as x
+    CALL apoc.cypher.run('
+        WITH {x} AS word_
+        MATCH (el) - [:HAS_CONTENT] -> (c:CONTENT) - [rel:HAS_WORD] -> (w:WORD{text:word_}) 
+        WHERE (:USER{id:\"PqM9eULbuURBFVo7c7hM7yzuQmT2\"}) - [:LIKES] ->(el:SERIES) 
+        RETURN {content:c, interest:el.name, word:w.text, pos:rel.pos} as qu LIMIT 6
+        UNION ALL
+        WITH {x} AS word_
+        MATCH (el) - [:HAS_CONTENT] -> (c:CONTENT) - [rel:HAS_WORD] -> (w:WORD{text:word_})
+        WHERE (:USER{id:\"PqM9eULbuURBFVo7c7hM7yzuQmT2\"}) - [:LIKES] ->(el:MOVIE)
+        RETURN {content:c, interest:el.name, word:w.text, pos:rel.pos} as qu LIMIT 6
+        UNION ALL
+        WITH {x} AS word_
+        MATCH (el) - [:HAS_CONTENT] -> (c:CONTENT) - [rel:HAS_WORD] -> (w:WORD{text:word_})
+        WHERE (:USER{id:\"PqM9eULbuURBFVo7c7hM7yzuQmT2\"}) - [:LIKES] ->(el:ARTIST)
+        RETURN {content:c, interest:el.name, word:w.text, pos:rel.pos} as qu LIMIT 6
+    ',{x:x}) YIELD value
+    with x, value.qu as content, rand() as rnd
+    return x, content, rnd order by rnd limit 1
+    ", {word_list:word_list}) YIELD value
+RETURN lemma, value.x as word, value.content as content, level, mastered
+ - {} - {}
+2020-07-29 04:53:03.686+0000 INFO  1499 ms: (planning: 9, cpu: 1396, waiting: 0) - 302213448 B - 3976032 page hits, 0 page faults - bolt-session    bolt     dev     neo4j-java/dev          client/107.178.207.156:62059    server/10.142.0.2:7687> dev - MATCH (lemma:LEMMA)
+MATCH (user:USER)
+WHERE user.id = 'He4rLDGyTUTffXqxs2pavX8DxBx1'
+MATCH (user)-[:LIKES]->(i)-[:HAS_LEMMA]->(lemma)
+WHERE NOT (user)-[:HAS_SEEN{mastered:True}]-(lemma)
+AND NOT (user)-[:IS_LEARNING]->(lemma)
+and lemma.diff >= user.current_rank
+RETURN distinct(lemma.text) as text, lemma.diff
+2020-07-30 01:50:03.686+0000 INFO  1499 ms: (planning: 9, cpu: 1396, waiting: 0) - 302213448 B - 3976032 page hits, 0 page faults - bolt-session    bolt     dev     neo4j-java/dev          client/107.178.207.156:62059    server/10.142.0.2:7687> dev - MATCH (lemma:LEMMA)
+MATCH (user:USER)
+WHERE user.id = 'XXXXXXXXXX'
+MATCH (user)-[:LIKES]->(i)-[:HAS_LEMMA]->(lemma)
+WHERE NOT (user)-[:HAS_SEEN{mastered:True}]-(lemma)
+AND NOT (user)-[:IS_LEARNING]->(lemma)
+and lemma.diff >= user.current_rank
+RETURN distinct(lemma.text) as text, lemma.diff
+2020-07-31 02:50:03.686+0000 INFO  1499 ms: (planning: 9, cpu: 1396, waiting: 0) - 302213448 B - 3976032 page hits, 0 page faults - bolt-session    bolt     dev     neo4j-java/dev          client/107.178.207.156:62059    server/10.142.0.2:7687> dev - MATCH (lemma:LEMMA)
+MATCH (user:USER)
+WHERE user.id = 'YYYYYYYY'
+MATCH (user)-[:LIKES]->(i)-[:HAS_LEMMA]->(lemma)
+WHERE NOT (user)-[:HAS_SEEN{mastered:True}]-(lemma)
+AND NOT (user)-[:IS_LEARNING]->(lemma)
+and lemma.diff >= user.current_rank
+RETURN distinct(lemma.text) as text, lemma.diff
+2020-08-01 03:50:03.686+0000 INFO  1499 ms: (planning: 9, cpu: 1396, waiting: 0) - 302213448 B - 3976032 page hits, 0 page faults - bolt-session    bolt     dev     neo4j-java/dev          client/107.178.207.156:62059    server/10.142.0.2:7687> dev - MATCH (lemma:LEMMA)
+MATCH (user:USER)
+WHERE user.id = 'ZZZZZZZ'
+MATCH (user)-[:LIKES]->(i)-[:HAS_LEMMA]->(lemma)
+WHERE NOT (user)-[:HAS_SEEN{mastered:True}]-(lemma)
+AND NOT (user)-[:IS_LEARNING]->(lemma)
+and lemma.diff >= user.current_rank
+RETURN distinct(lemma.text) as text, lemma.diff
